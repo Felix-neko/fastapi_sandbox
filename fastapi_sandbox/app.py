@@ -35,6 +35,11 @@ def login_redirect():
     return RedirectResponse(idp.login_uri)
 
 
+@app.get("/logout")
+def logout_redirect():
+    return RedirectResponse(idp.logout_uri)
+
+
 @app.get("/callback")
 def callback(session_state: str, code: str):
     return idp.exchange_authorization_code(session_state=session_state, code=code)  # This will return an access token
