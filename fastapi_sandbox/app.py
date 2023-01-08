@@ -35,15 +35,10 @@ def login_redirect():
     return RedirectResponse(idp.login_uri)
 
 
-@app.get("/logout")
-def logout_redirect():
-    return RedirectResponse(idp.logout_uri)
-
-
 @app.get("/callback")
 def callback(session_state: str, code: str):
     return idp.exchange_authorization_code(session_state=session_state, code=code)  # This will return an access token
 
 
 if __name__ == '__main__':
-    uvicorn.run('app:app', host="127.0.0.1", port=8081)
+    uvicorn.run(app, host="127.0.0.1", port=8081)

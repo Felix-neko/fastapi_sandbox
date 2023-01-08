@@ -1,7 +1,7 @@
 from typing import List, Optional
 
 import uvicorn
-from fastapi import FastAPI, Depends, Query, Body, Request
+from fastapi import FastAPI, Depends, Query, Body, Request, Response
 from fastapi.responses import JSONResponse
 from pydantic import SecretStr
 
@@ -215,10 +215,14 @@ def company_admin(user: OIDCUser = Depends(idp.get_current_user(required_roles=[
 
 
 @app.post("/login", tags=["example-user-request"])
-def login(user: UsernamePassword = Body(...)):
+def login_post(user: UsernamePassword = Body(...)):
     return idp.user_login(
         username=user.username, password=user.password.get_secret_value()
     )
+
+@app.get("/login", tags=["example-user-request"])
+def login_get(username: str, password: str):
+    return idp.user_login(username=username, password=password)
 
 
 # Auth Flow
@@ -229,8 +233,10 @@ def login_redirect():
 
 
 @app.get("/callback", tags=["auth-flow"])
-def callback(session_state: str, code: str):
+def callback(session_state: str, code: str, response: Response):
     auth_code = idp.exchange_authorization_code(session_state=session_state, code=code)
+
+    response.headers["Authorization"] = f"Bearer {auth_code.access_token}"
     return auth_code
 
 
@@ -240,4 +246,4 @@ def logout():
 
 
 if __name__ == "__main__":
-    uvicorn.run("full_example:app", host="127.0.0.1", port=8081)
+    uvicorn.run(app, host="127.0.0.1", port=8081)
